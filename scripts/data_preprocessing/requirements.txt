@@ -1,0 +1,6 @@
+safetensors 
+accelerate 
+sentencepiece
+protobuf
+rich
+torch==2.4.1
