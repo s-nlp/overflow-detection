@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            Detecting Overflow in Compressed Token Representations for RAG
+        </title>
+
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- MathJax -->
+        <script>
+            MathJax = {
+                tex: {
+                    inlineMath: [
+                        ["$", "$"],
+                        ["\\(", "\\)"],
+                    ],
+                    displayMath: [
+                        ["$$", "$$"],
+                        ["\\[", "\\]"],
+                    ],
+                    processEscapes: true,
+                    tags: "ams",
+                },
+                options: {
+                    skipHtmlTags: [
+                        "script",
+                        "noscript",
+                        "style",
+                        "textarea",
+                        "pre",
+                        "code",
+                    ],
+                },
+            };
+        </script>
+        <script
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+            async
+        ></script>
+
+        <!-- Marked.js — markdown parser -->
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+        <style>
+            :root {
+                --bg: #0e1117;
+                --bg-card: #161b22;
+                --bg-hover: #1c2333;
+                --border: #21262d;
+                --text: #c9d1d9;
+                --text-dim: #8b949e;
+                --text-bright: #f0f6fc;
+                --accent: #58a6ff;
+                --accent-dim: #1f6feb33;
+                --code-bg: #0d1117;
+                --sidebar-w: 280px;
+                --radius: 6px;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: "DM Sans", sans-serif;
+                background: var(--bg);
+                color: var(--text);
+                line-height: 1.7;
+                font-size: 15px;
+                overflow-x: hidden;
+            }
+
+            /* ────── Sidebar ────── */
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: var(--sidebar-w);
+                height: 100vh;
+                background: var(--bg-card);
+                border-right: 1px solid var(--border);
+                padding: 2rem 0;
+                overflow-y: auto;
+                z-index: 100;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .sidebar-header {
+                padding: 0 1.5rem 1.5rem;
+                border-bottom: 1px solid var(--border);
+                margin-bottom: 1rem;
+            }
+
+            .sidebar-header h1 {
+                font-family: "Source Serif 4", serif;
+                font-size: 1.05rem;
+                font-weight: 600;
+                color: var(--text-bright);
+                line-height: 1.4;
+                letter-spacing: -0.01em;
+            }
+
+            .sidebar-header .tag {
+                display: inline-block;
+                margin-top: 0.6rem;
+                padding: 0.15rem 0.5rem;
+                font-size: 0.7rem;
+                font-weight: 500;
+                color: var(--accent);
+                background: var(--accent-dim);
+                border-radius: 99px;
+                letter-spacing: 0.02em;
+            }
+
+            .sidebar nav {
+                flex: 1;
+                padding: 0.5rem 0;
+            }
+
+            .sidebar .nav-group {
+                padding: 0.3rem 1.5rem;
+                font-size: 0.65rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: var(--text-dim);
+                margin-top: 0.8rem;
+            }
+
+            .sidebar a {
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+                padding: 0.45rem 1.5rem;
+                color: var(--text-dim);
+                text-decoration: none;
+                font-size: 0.85rem;
+                font-weight: 400;
+                transition: all 0.15s;
+                border-left: 2px solid transparent;
+            }
+
+            .sidebar a:hover {
+                color: var(--text-bright);
+                background: var(--bg-hover);
+            }
+
+            .sidebar a.active {
+                color: var(--accent);
+                border-left-color: var(--accent);
+                background: var(--accent-dim);
+                font-weight: 500;
+            }
+
+            .sidebar a .icon {
+                width: 16px;
+                text-align: center;
+                font-size: 0.8rem;
+                opacity: 0.7;
+            }
+
+            .sidebar-footer {
+                padding: 1rem 1.5rem;
+                border-top: 1px solid var(--border);
+                display: flex;
+                gap: 0.8rem;
+            }
+
+            .sidebar-footer a {
+                padding: 0;
+                font-size: 0.75rem;
+                color: var(--text-dim);
+                border: none;
+            }
+            .sidebar-footer a:hover {
+                color: var(--accent);
+                background: none;
+            }
+
+            /* ────── Main content ────── */
+            .main {
+                margin-left: var(--sidebar-w);
+                min-height: 100vh;
+            }
+
+            /* Hero */
+            .hero {
+                padding: 4rem 3.5rem 3rem;
+                border-bottom: 1px solid var(--border);
+                background:
+                    radial-gradient(
+                        ellipse 80% 60% at 70% 20%,
+                        #1f6feb15,
+                        transparent
+                    ),
+                    radial-gradient(
+                        ellipse 50% 50% at 20% 80%,
+                        #58a6ff08,
+                        transparent
+                    );
+            }
+
+            .hero h1 {
+                font-family: "Source Serif 4", serif;
+                font-size: 2.1rem;
+                font-weight: 700;
+                color: var(--text-bright);
+                line-height: 1.25;
+                letter-spacing: -0.025em;
+                max-width: 700px;
+            }
+
+            .hero p {
+                margin-top: 1rem;
+                font-size: 1.05rem;
+                color: var(--text-dim);
+                max-width: 600px;
+                line-height: 1.65;
+            }
+
+            .hero-links {
+                margin-top: 1.5rem;
+                display: flex;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+            }
+
+            .hero-links a {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.45rem;
+                padding: 0.5rem 1.1rem;
+                font-size: 0.82rem;
+                font-weight: 500;
+                border-radius: var(--radius);
+                text-decoration: none;
+                transition: all 0.15s;
+            }
+
+            .btn-primary {
+                background: var(--accent);
+                color: #fff;
+            }
+            .btn-primary:hover {
+                filter: brightness(1.15);
+            }
+
+            .btn-outline {
+                border: 1px solid var(--border);
+                color: var(--text);
+                background: transparent;
+            }
+            .btn-outline:hover {
+                border-color: var(--accent);
+                color: var(--accent);
+            }
+
+            /* Article area */
+            .content {
+                max-width: 800px;
+                padding: 2.5rem 3.5rem 4rem;
+            }
+
+            .content.loading {
+                display: flex;
+                justify-content: center;
+                padding-top: 6rem;
+                color: var(--text-dim);
+                font-size: 0.9rem;
+            }
+
+            /* ────── Markdown styles ────── */
+            .content h1 {
+                font-family: "Source Serif 4", serif;
+                font-size: 1.65rem;
+                font-weight: 700;
+                color: var(--text-bright);
+                margin: 2.5rem 0 1rem;
+                letter-spacing: -0.02em;
+            }
+            .content h1:first-child {
+                margin-top: 0;
+            }
+
+            .content h2 {
+                font-family: "Source Serif 4", serif;
+                font-size: 1.3rem;
+                font-weight: 600;
+                color: var(--text-bright);
+                margin: 2.2rem 0 0.8rem;
+                padding-bottom: 0.35rem;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .content h3 {
+                font-size: 1.05rem;
+                font-weight: 600;
+                color: var(--text-bright);
+                margin: 1.8rem 0 0.6rem;
+            }
+
+            .content p {
+                margin: 0.8rem 0;
+            }
+
+            .content a {
+                color: var(--accent);
+                text-decoration: none;
+            }
+            .content a:hover {
+                text-decoration: underline;
+            }
+
+            .content ul,
+            .content ol {
+                padding-left: 1.5rem;
+                margin: 0.8rem 0;
+            }
+            .content li {
+                margin: 0.3rem 0;
+            }
+
+            .content img {
+                max-width: 100%;
+                border-radius: var(--radius);
+                border: 1px solid var(--border);
+                margin: 1rem 0;
+            }
+
+            .content blockquote {
+                border-left: 3px solid var(--accent);
+                padding: 0.6rem 1rem;
+                margin: 1rem 0;
+                color: var(--text-dim);
+                background: var(--bg-card);
+                border-radius: 0 var(--radius) var(--radius) 0;
+            }
+
+            .content table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1.2rem 0;
+                font-size: 0.88rem;
+            }
+
+            .content th {
+                text-align: left;
+                padding: 0.6rem 0.8rem;
+                font-weight: 600;
+                color: var(--text-bright);
+                border-bottom: 2px solid var(--border);
+            }
+
+            .content td {
+                padding: 0.5rem 0.8rem;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .content tr:hover td {
+                background: var(--bg-card);
+            }
+
+            .content code {
+                font-family: "JetBrains Mono", monospace;
+                font-size: 0.82em;
+                background: var(--code-bg);
+                padding: 0.15em 0.4em;
+                border-radius: 3px;
+                border: 1px solid var(--border);
+            }
+
+            .content pre {
+                background: var(--code-bg);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 1rem 1.2rem;
+                overflow-x: auto;
+                margin: 1rem 0;
+                line-height: 1.55;
+            }
+
+            .content pre code {
+                background: none;
+                border: none;
+                padding: 0;
+                font-size: 0.82rem;
+            }
+
+            /* MathJax overrides */
+            .MathJax {
+                font-size: 1.05em !important;
+            }
+
+            /* ────── Mobile ────── */
+            .mobile-toggle {
+                display: none;
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                z-index: 200;
+                width: 40px;
+                height: 40px;
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                color: var(--text);
+                font-size: 1.2rem;
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+            }
+
+            @media (max-width: 860px) {
+                .mobile-toggle {
+                    display: flex;
+                }
+
+                .sidebar {
+                    transform: translateX(-100%);
+                    transition: transform 0.25s ease;
+                }
+                .sidebar.open {
+                    transform: translateX(0);
+                }
+
+                .main {
+                    margin-left: 0;
+                }
+
+                .hero {
+                    padding: 3.5rem 1.5rem 2rem;
+                }
+                .hero h1 {
+                    font-size: 1.5rem;
+                }
+
+                .content {
+                    padding: 2rem 1.5rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Mobile menu toggle -->
+        <button
+            class="mobile-toggle"
+            onclick="document.querySelector('.sidebar').classList.toggle('open')"
+            aria-label="Toggle menu"
+        >
+            ☰
+        </button>
+
+        <!-- ────── Sidebar ────── -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>
+                    Detecting Overflow in Compressed Token Representations for
+                    RAG
+                </h1>
+                <span class="tag">2026</span>
+            </div>
+
+            <nav id="nav">
+                <div class="nav-group">Overview</div>
+                <a href="#README" class="active">
+                    <span class="icon">◈</span> Home
+                </a>
+
+                <div class="nav-group">Pipeline</div>
+                <a href="#scripts/data_preprocessing/README">
+                    <span class="icon">◇</span> Data Processing
+                </a>
+                <a href="#scripts/probing_experiments/README">
+                    <span class="icon">◇</span> Probing Experiments
+                </a>
+                <a href="#scripts/hiddens_comparison/README">
+                    <span class="icon">◇</span> Hiddens Comparison
+                </a>
+
+                <a href="#scripts/features_comparison/README">
+                    <span class="icon">◇</span> Features Comparison
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a
+                    href="https://github.com/s-nlp/overflow-detection"
+                    target="_blank"
+                    >GitHub ↗</a
+                >
+                <a href="https://arxiv.org/abs/2602.12235" target="_blank"
+                    >arXiv ↗</a
+                >
+                <a href="https://arxiv.org/pdf/2602.12235" target="_blank"
+                    >PDF ↗</a
+                >
+            </div>
+        </aside>
+
+        <!-- ────── Main ────── -->
+        <div class="main">
+            <!-- Hero (shown only for the landing page) -->
+            <div class="hero" id="hero">
+                <h1>
+                    Detecting Overflow in Compressed Token Representations for
+                    RAG
+                </h1>
+                <p>
+                    A detection framework for identifying information loss in
+                    compressed retrieval contexts.
+                </p>
+                <div class="hero-links">
+                    <a
+                        href="https://arxiv.org/pdf/2602.12235"
+                        class="btn-primary"
+                        >📄 Read the Paper</a
+                    >
+                    <a
+                        href="https://github.com/s-nlp/overflow-detection/"
+                        class="btn-outline"
+                        target="_blank"
+                        >⌘ GitHub</a
+                    >
+                </div>
+            </div>
+
+            <div class="content" id="content">
+                <!-- Markdown content loads here -->
+            </div>
+        </div>
+
+        <script>
+            (function () {
+                // ── Config ──
+                // Map hash → markdown file path (relative to repo root).
+                const pages = {
+                    README: "README.md",
+                    "scripts/data_preprocessing/README":
+                        "scripts/data_preprocessing/README.md",
+                    "scripts/probing_experiments/README":
+                        "scripts/probing_experiments/README.md",
+                    "scripts/hiddens_comparison/README":
+                        "scripts/hiddens_comparison/README.md",
+                    "scripts/features_comparison/README":
+                        "scripts/features_comparison/README.md",
+                    // Add more pages:
+                    // 'folder/page':      'folder/page.md',
+                };
+
+                const defaultPage = "README";
+                const contentEl = document.getElementById("content");
+                const heroEl = document.getElementById("hero");
+                const navLinks = document.querySelectorAll("#nav a");
+
+                // ── Markdown rendering ──
+                marked.setOptions({
+                    gfm: true,
+                    breaks: false,
+                    headerIds: true,
+                });
+
+                async function loadPage(key) {
+                    const file = pages[key];
+                    if (!file) {
+                        contentEl.innerHTML = "<p>Page not found.</p>";
+                        return;
+                    }
+
+                    contentEl.innerHTML =
+                        '<p style="color:var(--text-dim)">Loading…</p>';
+                    contentEl.classList.add("loading");
+
+                    // Show hero only on landing page
+                    heroEl.style.display = key === defaultPage ? "" : "none";
+
+                    try {
+                        const res = await fetch(file);
+                        if (!res.ok) throw new Error(res.status);
+                        const md = await res.text();
+
+                        contentEl.classList.remove("loading");
+                        contentEl.innerHTML = marked.parse(md);
+
+                        // Re-render math
+                        if (window.MathJax && MathJax.typesetPromise) {
+                            MathJax.typesetPromise([contentEl]);
+                        }
+                    } catch (e) {
+                        contentEl.classList.remove("loading");
+                        contentEl.innerHTML = `
+        <h2>Couldn't load ${file}</h2>
+        <p style="color:var(--text-dim)">
+          Make sure the file exists at <code>${file}</code> relative to index.html.<br>
+          If previewing locally, run: <code>python3 -m http.server 8000</code>
+        </p>`;
+                    }
+
+                    // Update active nav link
+                    navLinks.forEach((a) => {
+                        a.classList.toggle(
+                            "active",
+                            a.getAttribute("href") === "#" + key,
+                        );
+                    });
+
+                    // Close mobile sidebar
+                    document.querySelector(".sidebar").classList.remove("open");
+                    window.scrollTo(0, 0);
+                }
+
+                // ── Routing ──
+                function route() {
+                    const key = location.hash.slice(1) || defaultPage;
+                    loadPage(key);
+                }
+
+                window.addEventListener("hashchange", route);
+                route();
+            })();
+        </script>
+    </body>
+</html>
