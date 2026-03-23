@@ -6,16 +6,15 @@ Run instrumentation (hooks + metrics + attention stats) on a set of canonical sa
 saving incremental JSONL features and final vectors.pt.
 
 Usage example:
-python probe_pipeline.py \
-  --samples_jsonl /app/xlong/scripts/data_preprocessing/runs/squad/samples.jsonl \
-  --results_jsonl /app/xlong/scripts/data_preprocessing/runs/squad/results.jsonl \
-  --ctx2embed /app/xlong/scripts/data_preprocessing/runs/squad/embeds/background_embeds.pt \
-  --out_dir /app/xlong/scripts/data_preprocessing/runs/squad/probe \
+CUDA_VISIBLE_DEVICES=0 python probe_pipeline.py \
+  --samples_jsonl /app/overflow-detection/scripts/data_preprocessing/runs/trivia_7b/samples.jsonl \
+  --results_jsonl /app/overflow-detection/scripts/data_preprocessing/runs/trivia_7b/results.jsonl \
+  --ctx2embed /app/overflow-detection/scripts/data_preprocessing/runs/trivia_7b/embeds/background_embeds.pt \
+  --out_dir /app/overflow-detection/scripts/data_preprocessing/runs/trivia_7b/probe \
   --model_name_or_path /app/models/xrag-7b \
   --model_type 'mistral' \
-  --retriever_name_or_path /app/models/xrag_embed \
+  --retriever_name_or_path /app/models/xrag-embed \
   --device cuda:0 \
-  --max_samples 100 \
   --mid_layer_index 16 \
   --save_every 200 \
   --project_questions \
@@ -374,7 +373,7 @@ def run_probe_pipeline(
         model = XMistralForCausalLM.from_pretrained(model, torch_dtype=torch.bfloat16, low_cpu_mem_usage=True, device_map="auto", attn_implementation="eager")
     else:
         model = XMixtralForCausalLM.from_pretrained(model, torch_dtype=torch.bfloat16, low_cpu_mem_usage=True, device_map="auto", attn_implementation="eager")
-    model.to(device)
+    # model.to(device)
     model.eval()
 
     # run lists

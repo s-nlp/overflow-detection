@@ -139,8 +139,8 @@ Results include mean and standard deviation across k folds.
 ```bash
 # 1. Run full experiments (with-query + no-query)
 python run_probing_experiments.py \
-    --data_path data/mistral_squad_vectors_probing.pt \
-    --output_dir results/mistral_squad/
+    --data_path /app/overflow-detection/scripts/data_preprocessing/runs/trivia_7b/probe/vectors.pt \
+    --output_dir /app/overflow-detection/scripts/data_preprocessing/runs/trivia_7b/results 
 
 # 2. Run only with-query experiments
 python run_probing_experiments.py \
@@ -150,8 +150,8 @@ python run_probing_experiments.py \
 
 # 3. Generate comparison figures
 python visualize_classifiers_performance.py \
-    --base_path results/ \
-    --datasets mistral_squad mistral_trivia mistral_hotpot \
+    --base_path /app/overflow-detection/scripts/data_preprocessing/runs/ \
+    --datasets trivia_7b/results \
     --output_dir figures/
 ```
 
