@@ -3,10 +3,10 @@ Single entry point:
 - optionally builds samples.jsonl (SQuAD v2 / HotpotQA / TriviaQA xRAG-style)
 - runs notebook-aligned overflow pipeline (baseline + optional xRAG + metrics)
 
-Typical (100 samples quick example with squad dataset):
-  python run_pipeline.py --data squad_v2 --out_dir runs/squad --mode both --max_samples 100 --model_name_or_path /app/models/xrag-7b --model_type 'mistral' --retriever_name_or_path /app/models/xrag_embed --device "cuda:0"
-Or:
-  python run_pipeline.py --samples_jsonl data/samples.jsonl --out_dir runs/... --mode both ...
+Typical (100 samples quick example with trivia dataset on Mistral xRAG model):
+  CUDA_VISIBLE_DEVICES=0 python run_pipeline.py --data triviaqa --out_dir runs/trivia_7b --mode both --only_baseline_correct --model_name_or_path /app/models/xrag-7b --model_type 'mistral' --retriever_name_or_path /app/models/xrag-embed --device "cuda:0"
+Or (MoE xRAG model):
+  CUDA_VISIBLE_DEVICES=0,1 python run_pipeline.py --data triviaqa --out_dir runs/trivia_moe --mode both --only_baseline_correct --model_name_or_path /app/models/xrag-moe --model_type 'mixtral' --retriever_name_or_path /app/models/xrag-embed --device "cuda:0"
 
 python -c "import os; print(os.path.isdir('/app/xlong/scripts/xRAG'))"
 
@@ -56,7 +56,7 @@ def main() -> None:
 
     # Prompt / gen
     ap.add_argument("--n_shot", type=int, default=0)
-    ap.add_argument("--chat_format_type", type=str, default="mistral")
+    ap.add_argument("--chat_format", type=str, default="mistral")
     ap.add_argument("--retrieval_embed_length", type=int, default=1)
     ap.add_argument("--embed_max_len", type=int, default=512)
     ap.add_argument("--max_new_tokens", type=int, default=32)
@@ -112,7 +112,7 @@ def main() -> None:
         embed_max_len=args.embed_max_len,
         retrieval_embed_length=args.retrieval_embed_length,
         n_shot=args.n_shot,
-        chat_format_type=args.chat_format_type,
+        chat_format=args.chat_format,
         max_new_tokens=args.max_new_tokens,
         only_baseline_correct=args.only_baseline_correct,
         device=args.device,
