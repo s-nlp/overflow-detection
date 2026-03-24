@@ -110,14 +110,22 @@ This trains lightweight classifiers on all embedding stage combinations with str
 
 ## Citation
 
+Julia Belikova, Danila Rozhevskii, Dennis Svirin, Konstantin Polev, and Alexander Panchenko (2026): [Detecting Overflow in Compressed Token Representations for Retrieval-Augmented Generation](https://aclanthology.org/2026.eacl-srw.59/). In Proceedings of the 19th Conference of the European Chapter of the Association for Computational Linguistics (Volume 4: Student Research Workshop), pages 797–810, Rabat, Morocco. Association for Computational Linguistics.
+
+
+
 ```bibtex
-@misc{belikova2026detectingoverflowcompressedtoken,
-  title        = {Detecting Overflow in Compressed Token Representations for Retrieval-Augmented Generation},
-  author       = {Julia Belikova and Danila Rozhevskii and Dennis Svirin and Konstantin Polev and Alexander Panchenko},
-  year         = {2026},
-  eprint       = {2602.12235},
-  archivePrefix = {arXiv},
-  primaryClass = {cs.CL},
-  url          = {https://arxiv.org/abs/2602.12235},
+@inproceedings{belikova-etal-2026-detecting,
+    title = "Detecting Overflow in Compressed Token Representations for Retrieval-Augmented Generation",
+    author = "Belikova, Julia  and Rozhevskii, Danila  and Svirin, Dennis  and Polev, Konstantin  and Panchenko, Alexander",
+    editor = "Baez Santamaria, Selene  and Somayajula, Sai Ashish  and Yamaguchi, Atsuki",
+    booktitle = "Proceedings of the 19th Conference of the {E}uropean Chapter of the {A}ssociation for {C}omputational {L}inguistics (Volume 4: Student Research Workshop)",
+    month = mar,
+    year = "2026",
+    address = "Rabat, Morocco",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2026.eacl-srw.59/",
+    pages = "797--810",
+    ISBN = "979-8-89176-383-8"
 }
 ```
