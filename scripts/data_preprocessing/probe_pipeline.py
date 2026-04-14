@@ -6,13 +6,13 @@ Run instrumentation (hooks + metrics + attention stats) on a set of canonical sa
 saving incremental JSONL features and final vectors.pt.
 
 Usage example:
-CUDA_VISIBLE_DEVICES=0 python probe_pipeline.py \
-  --samples_jsonl /app/overflow-detection/scripts/data_preprocessing/runs/trivia_7b/samples.jsonl \
-  --results_jsonl /app/overflow-detection/scripts/data_preprocessing/runs/trivia_7b/results.jsonl \
-  --ctx2embed /app/overflow-detection/scripts/data_preprocessing/runs/trivia_7b/embeds/background_embeds.pt \
-  --out_dir /app/overflow-detection/scripts/data_preprocessing/runs/trivia_7b/probe \
-  --model_name_or_path /app/models/xrag-7b \
-  --model_type 'mistral' \
+CUDA_VISIBLE_DEVICES=0,1 python probe_pipeline.py \
+  --samples_jsonl /app/overflow-detection/scripts/data_preprocessing/runs/squad_moe/samples.jsonl \
+  --results_jsonl /app/overflow-detection/scripts/data_preprocessing/runs/squad_moe/results.jsonl \
+  --ctx2embed /app/overflow-detection/scripts/data_preprocessing/runs/squad_moe/embeds/background_embeds.pt \
+  --out_dir /app/overflow-detection/scripts/data_preprocessing/runs/squad_moe/probe \
+  --model_name_or_path /app/models/xrag-moe \
+  --model_type 'mixtral' \
   --retriever_name_or_path /app/models/xrag-embed \
   --device cuda:0 \
   --mid_layer_index 16 \

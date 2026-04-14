@@ -4,9 +4,9 @@ Single entry point:
 - runs notebook-aligned overflow pipeline (baseline + optional xRAG + metrics)
 
 Typical (100 samples quick example with trivia dataset on Mistral xRAG model):
-  CUDA_VISIBLE_DEVICES=0 python run_pipeline.py --data triviaqa --out_dir runs/trivia_7b --mode both --only_baseline_correct --model_name_or_path /app/models/xrag-7b --model_type 'mistral' --retriever_name_or_path /app/models/xrag-embed --device "cuda:0"
+  CUDA_VISIBLE_DEVICES=0 python run_pipeline.py --data hotpotqa --out_dir runs/hotpotqa_unfiltered_7b --mode both --model_name_or_path /app/models/xrag-7b --model_type 'mistral' --retriever_name_or_path /app/models/xrag-embed --device "cuda:0"
 Or (MoE xRAG model):
-  CUDA_VISIBLE_DEVICES=0,1 python run_pipeline.py --data triviaqa --out_dir runs/trivia_moe --mode both --only_baseline_correct --model_name_or_path /app/models/xrag-moe --model_type 'mixtral' --retriever_name_or_path /app/models/xrag-embed --device "cuda:0"
+  CUDA_VISIBLE_DEVICES=0,1 python run_pipeline.py --data squad_v2 --out_dir runs/squad_moe --mode both --model_name_or_path /app/models/xrag-moe --model_type 'mixtral' --retriever_name_or_path /app/models/xrag-embed --device "cuda:0"
 
 python -c "import os; print(os.path.isdir('/app/xlong/scripts/xRAG'))"
 

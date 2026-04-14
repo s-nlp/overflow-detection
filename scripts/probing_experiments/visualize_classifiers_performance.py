@@ -168,7 +168,7 @@ def create_classifier_comparison_plot(
         ax1.set_xticklabels(
             feature_labels1, fontsize=12, rotation=0, ha="center"
         )
-        ax1.set_ylim(0.5, 0.80)
+        ax1.set_ylim(0.5, 0.90)
         ax1.grid(axis="y", alpha=0.3, linestyle="--")
 
         if col_idx == 0:
@@ -237,7 +237,7 @@ def create_classifier_comparison_plot(
             feature_labels2, fontsize=12, rotation=0, ha="center"
         )
         ax2.set_xlabel("Feature Combination", fontweight="bold", fontsize=12)
-        ax2.set_ylim(0.5, 0.80)
+        ax2.set_ylim(0.5, 0.90)
         ax2.grid(axis="y", alpha=0.3, linestyle="--")
 
         if col_idx == 0:

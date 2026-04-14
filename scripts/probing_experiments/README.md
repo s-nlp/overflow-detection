@@ -138,20 +138,20 @@ Results include mean and standard deviation across k folds.
 
 ```bash
 # 1. Run full experiments (with-query + no-query)
-python run_probing_experiments.py \
-    --data_path /app/overflow-detection/scripts/data_preprocessing/runs/trivia_7b/probe/vectors.pt \
-    --output_dir /app/overflow-detection/scripts/data_preprocessing/runs/trivia_7b/results 
+python run_probing_experiments_with_best_probe.py \
+    --data_path /app/overflow-detection/scripts/data_preprocessing/runs/merged2_moe/probe/vectors.pt \
+    --output_dir /app/overflow-detection/scripts/data_preprocessing/runs/merged2_moe/results 
 
 # 2. Run only with-query experiments
-python run_probing_experiments.py \
-    --data_path data/mistral_trivia_vectors_probing.pt \
-    --output_dir results/mistral_trivia/ \
+python run_probing_experiments_with_best_probe.py \
+    --data_path /app/overflow-detection/scripts/data_preprocessing/runs/merged_all_no_llm_7b/probe/vectors.pt \
+    --output_dir /app/overflow-detection/scripts/data_preprocessing/runs/merged_all_no_llm_7b/results 
     --with_query_only
 
 # 3. Generate comparison figures
 python visualize_classifiers_performance.py \
     --base_path /app/overflow-detection/scripts/data_preprocessing/runs/ \
-    --datasets trivia_7b/results \
+    --datasets merged_moe/results \
     --output_dir figures/
 ```
 
