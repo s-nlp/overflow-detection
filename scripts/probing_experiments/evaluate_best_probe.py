@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 python evaluate_best_probe.py \
-  --data_path /app/overflow-detection/scripts/data_preprocessing/runs/hotpotqa_moe/probe/vectors.pt \
-  --probe_prefix /app/overflow-detection/scripts/data_preprocessing/runs/merged2_moe/results/best_probe_with_query_probing \
+  --data_path /app/overflow-detection/scripts/data_preprocessing/runs/merged_test_7b/probe/test/vectors.pt \
+  --probe_prefix /app/overflow-detection/scripts/data_preprocessing/runs/merged_test_7b/results/best_probe_no_query_probing \
   --device 0 \
-  --output_json /app/overflow-detection/scripts/data_preprocessing/runs/hotpotqa_moe/results/hotpot_test_metrics.json
+  --output_json /app/overflow-detection/scripts/data_preprocessing/runs/merged_test_7b/results/hotpot_test_no_query_metrics.json
 """
 import argparse
 import json

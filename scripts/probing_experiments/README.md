@@ -139,8 +139,8 @@ Results include mean and standard deviation across k folds.
 ```bash
 # 1. Run full experiments (with-query + no-query)
 python run_probing_experiments_with_best_probe.py \
-    --data_path /app/overflow-detection/scripts/data_preprocessing/runs/merged2_moe/probe/vectors.pt \
-    --output_dir /app/overflow-detection/scripts/data_preprocessing/runs/merged2_moe/results 
+    --data_path /app/overflow-detection/scripts/data_preprocessing/runs/merged_test_7b/probe/train/vectors.pt \
+    --output_dir /app/overflow-detection/scripts/data_preprocessing/runs/merged_test_7b/results 
 
 # 2. Run only with-query experiments
 python run_probing_experiments_with_best_probe.py \

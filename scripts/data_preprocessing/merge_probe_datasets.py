@@ -17,9 +17,9 @@ Output:
 /app/overflow-detection/scripts/data_preprocessing/runs/hotpotqa_moe/probe \
 Example:
 python merge_probe_datasets.py \
-  --inputs /app/overflow-detection/scripts/data_preprocessing/runs/squad_moe/probe \
-           /app/overflow-detection/scripts/data_preprocessing/runs/trivia_moe/probe \
-  --out_dir /app/overflow-detection/scripts/data_preprocessing/runs/merged2_moe/probe
+  --inputs /app/overflow-detection/scripts/data_preprocessing/runs/squad_7b/probe \
+           /app/overflow-detection/scripts/data_preprocessing/runs/trivia_7b/probe_no_llm \
+  --out_dir /app/overflow-detection/scripts/data_preprocessing/runs/merged2_7b/probe
 """
 
 from __future__ import annotations
