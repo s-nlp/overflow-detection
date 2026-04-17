@@ -106,12 +106,13 @@ def create_classifier_comparison_plot(
     ]
 
     dataset_labels = {
-        "mistral_squad": "SQuADv2",
-        "mistral_trivia": "TriviaQA",
-        "mistral_hotpot": "HotpotQA",
+        "split_squad_7b/probe/results": "SQuADv2",
+        "split_trivia_7b/probe/results": "TriviaQA",
+        "split_hotpotqa_7b/probe/results": "HotpotQA",
+        "split_combined_7b/probe/results": "Combined",
     }
 
-    fig, axes = plt.subplots(2, 3, figsize=(18, 10))
+    fig, axes = plt.subplots(2, 4, figsize=(26, 10))
 
     colors = {
         "Linear": "#5ED1FF",

@@ -139,8 +139,12 @@ Results include mean and standard deviation across k folds.
 ```bash
 # 1. Run full experiments (with-query + no-query)
 python run_probing_experiments_with_best_probe.py \
-    --data_path /app/overflow-detection/scripts/data_preprocessing/runs/merged_test_7b/probe/train/vectors.pt \
-    --output_dir /app/overflow-detection/scripts/data_preprocessing/runs/merged_test_7b/results 
+    --split_mode combined \
+    --train_data_path /app/overflow-detection/scripts/data_preprocessing/runs/split_combined_7b/probe/train/vectors.pt \
+    --test_data_path /app/overflow-detection/scripts/data_preprocessing/runs/split_combined_7b/probe/test/vectors.pt \
+    --output_dir /app/overflow-detection/scripts/data_preprocessing/runs/split_combined_7b/probe/results \
+    --experiment_name split_combined_single \
+    --cv_folds 5
 
 # 2. Run only with-query experiments
 python run_probing_experiments_with_best_probe.py \
@@ -151,7 +155,7 @@ python run_probing_experiments_with_best_probe.py \
 # 3. Generate comparison figures
 python visualize_classifiers_performance.py \
     --base_path /app/overflow-detection/scripts/data_preprocessing/runs/ \
-    --datasets merged_moe/results \
+    --datasets split_trivia_7b/probe/results split_hotpotqa_7b/probe/results split_squad_7b/probe/results split_combined_7b/probe/results \
     --output_dir figures/
 ```
 
