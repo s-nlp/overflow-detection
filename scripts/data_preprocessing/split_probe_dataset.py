@@ -2,8 +2,8 @@
 """
 Example:
 python split_probe_dataset.py \
-  --input_dir /app/overflow-detection/scripts/data_preprocessing/runs/hotpotqa_7b/probe \
-  --out_dir /app/overflow-detection/scripts/data_preprocessing/runs/split_hotpotqa_7b/probe \
+  --input_dir /app/overflow-detection/scripts/data_preprocessing/runs/trivia_7b/probe_no_llm \
+  --out_dir /app/overflow-detection/scripts/data_preprocessing/runs/split_trivia_7b/probe_no_llm \
   --test_size 0.2 \
   --random_seed 42
 """

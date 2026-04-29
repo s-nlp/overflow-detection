@@ -283,14 +283,42 @@ def _evaluate_probe_on_fixed_test(save_obj, X_test, y_test):
 
 
 def _save_probe_artifacts(save_obj, save_prefix):
+    """
+    Save BOTH:
+      - torch weights (.pt) if available
+      - full model pickle (.pkl)
+      - scaler separately if exists
+    """
     probe = save_obj["probe"]
     scaler = save_obj.get("scaler")
+
+    artifact_types = []
+
+    # --- Save scaler ---
     if scaler is not None:
         with open(f"{save_prefix}_scaler.pkl", "wb") as f:
             pickle.dump(scaler, f)
-    with open(f"{save_prefix}_model.pkl", "wb") as f:
-        pickle.dump(probe, f)
-    return "pickle_model"
+        artifact_types.append("scaler_pkl")
+
+    # --- Save torch weights if possible ---
+    if torch is not None:
+        if hasattr(probe, "model") and hasattr(probe.model, "state_dict"):
+            torch.save(probe.model.state_dict(), f"{save_prefix}_weights.pt")
+            artifact_types.append("torch_model_state_dict")
+
+        elif hasattr(probe, "state_dict"):
+            torch.save(probe.state_dict(), f"{save_prefix}_weights.pt")
+            artifact_types.append("torch_state_dict")
+
+    # --- ALWAYS save full model as pickle ---
+    try:
+        with open(f"{save_prefix}_model.pkl", "wb") as f:
+            pickle.dump(probe, f)
+        artifact_types.append("pickle_model")
+    except Exception as e:
+        print(f"Warning: failed to pickle model: {e}")
+
+    return artifact_types
 
 
 def _get_best_result(results):

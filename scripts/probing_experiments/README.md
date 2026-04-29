@@ -142,8 +142,8 @@ python run_probing_experiments_with_best_probe.py \
     --split_mode combined \
     --train_data_path /app/overflow-detection/scripts/data_preprocessing/runs/split_combined_7b/probe/train/vectors.pt \
     --test_data_path /app/overflow-detection/scripts/data_preprocessing/runs/split_combined_7b/probe/test/vectors.pt \
-    --output_dir /app/overflow-detection/scripts/data_preprocessing/runs/split_combined_7b/probe/results \
-    --experiment_name split_combined_single \
+    --output_dir /app/overflow-detection/scripts/data_preprocessing/runs/split_combined_7b_weights/probe/results \
+    --experiment_name probing \
     --cv_folds 5
 
 # 2. Run only with-query experiments
@@ -155,7 +155,7 @@ python run_probing_experiments_with_best_probe.py \
 # 3. Generate comparison figures
 python visualize_classifiers_performance.py \
     --base_path /app/overflow-detection/scripts/data_preprocessing/runs/ \
-    --datasets split_trivia_7b/probe/results split_hotpotqa_7b/probe/results split_squad_7b/probe/results split_combined_7b/probe/results \
+    --datasets split_trivia_moe/probe/results split_hotpotqa_moe/probe/results split_squad_moe/probe/results split_combined_moe/probe/results \
     --output_dir figures/
 ```
 
