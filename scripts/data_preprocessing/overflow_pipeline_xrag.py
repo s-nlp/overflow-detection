@@ -39,6 +39,15 @@ from src.model import SFR, XMistralForCausalLM, XMixtralForCausalLM
 import src.eval.run_eval as run_eval
 from src.eval.run_eval import (
     prepare_prompts,
+    llm_for_open_generation,
+)
+from src.language_modeling.utils import XRAG_TOKEN, get_retrieval_embeds
+from src.eval.utils import (
+    stop_sequences_criteria,
+    get_substring_match_score,
+    eval_fact_checking,
+    eval_truthfulqa,
+    keyword_extraction_with_tfidf,
 )
 # Retrieval embedding helper: prefer xRAG's, fallback to local embedding
 try:
@@ -109,10 +118,10 @@ def _embed_with_fallback(
     retr_tok,
     embed_max_len: int = 256,
     batch_size: int = 16,
-    device: str = "cuda",
+    device: str = "cuda:0",
     show_progress: bool = True,
 ):
-    retriever.eval().to(device)
+    retriever.eval()#.to(device)
 
     outs = []
     total = len(flat_texts)
@@ -269,7 +278,7 @@ def run_overflow_pipeline(
     embed_max_len: int = 512,
     retrieval_embed_length: int = 1,
     n_shot: int = 0,
-    chat_format_type: str = "mistral",
+    chat_format: str = "mistral",
     max_new_tokens: int = 32,
     only_baseline_correct: bool = False,
     embed_cache_path: Optional[str] = None,
@@ -288,16 +297,35 @@ def run_overflow_pipeline(
     #_ensure_xrag_imports(xrag_dir)
 
     samples = _read_jsonl(samples_jsonl)
-
+    
     # --- load tokenizer (cheap) ---
     tokenizer = AutoTokenizer.from_pretrained(
         model_name_or_path,
         padding_side = 'left',
-        add_eos_token=True, ## import to include this!
+        add_eos_token=True, 
         use_fast=False,
     )
+    if tokenizer.pad_token:
+        pass
+    elif tokenizer.unk_token:
+        tokenizer.pad_token_id = tokenizer.unk_token_id
+    elif tokenizer.eos_token:
+        tokenizer.pad_token_id = tokenizer.eos_token_id
 
     # --- build baseline prompts (no placeholder tokens) ---
+    def create_prompt_with_mistral_chat_format(messages, tokenizer):
+        formatted_text = ""
+        for message in messages:
+            if message['role'] == 'user':
+                formatted_text += "[INST] " + message['content'] + " [/INST]"
+            elif message['role'] == 'assistant':
+                formatted_text += message['content'] + tokenizer.eos_token
+            else:
+                raise ValueError("Only 'user' and 'assistant' roles are supported.")
+        return formatted_text
+    
+    chat_format = create_prompt_with_mistral_chat_format if chat_format == "mistral" else None
+    
     baseline_prompts, _baseline_backgrounds = prepare_prompts(
         dev_data=None,
         test_data=samples,
@@ -306,7 +334,7 @@ def run_overflow_pipeline(
         n_shot=n_shot,
         use_rag=True,
         retrieval_embed_length=0,
-        # baseline: real background text in prompt,
+        chat_format=chat_format,
     )
 
     # --- build xRAG prompts + retrieval embeds if needed ---
@@ -326,6 +354,7 @@ def run_overflow_pipeline(
             n_shot=n_shot,
             use_rag=True,
             retrieval_embed_length=retrieval_embed_length,
+            chat_format=chat_format,
         )
 
         # Decide cache path
@@ -372,46 +401,64 @@ def run_overflow_pipeline(
             model_name_or_path,
             torch_dtype=torch.bfloat16,
             low_cpu_mem_usage=True,
-            device_map=device,
+            device_map="auto",
         )
     else:
         llm = XMixtralForCausalLM.from_pretrained(
             model_name_or_path,
             torch_dtype=torch.bfloat16,
             low_cpu_mem_usage=True,
-            device_map=device,
+            device_map="auto",
         )
         
     llm.eval()
+
+    assert XRAG_TOKEN in tokenizer.get_vocab()
+    llm.set_xrag_token_id(tokenizer.convert_tokens_to_ids(XRAG_TOKEN))
+    
     run_eval.tokenizer = tokenizer
         
     # --- generate ---
+    print(baseline_prompts[:2])
     baseline_outs: List[str] = []
     if mode in {"baseline", "both"}:
-        baseline_outs = generate_baseline_via_xrag(
-            prompts=baseline_prompts,
+        baseline_outs = llm_for_open_generation(
             llm=llm,
-            tok=tokenizer,
+            llm_tokenizer=tokenizer,
+            prompts=baseline_prompts,
+            retrieval_embeds=None,   # None for non-xRAG modes
+            batch_size=4,
+            enable_progress_bar=True,
         )
 
     xrag_outs: List[str] = []
     xrag_metrics: List[Dict[str, Any]] = []
     if mode in {"xrag", "both"}:
         assert xrag_prompts is not None and retrieval_embeds_batched is not None
-        xrag_outs, xrag_metrics = generate_xrag_with_latent_metrics(
-            prompts=xrag_prompts,
-            retrieval_embeds=retrieval_embeds_batched,
+        xrag_outs = llm_for_open_generation(
             llm=llm,
-            tok=tokenizer,
+            llm_tokenizer=tokenizer,
+            prompts=xrag_prompts,
+            retrieval_embeds=retrieval_embeds_batched,   # None for non-xRAG modes
+            batch_size=4,
+            enable_progress_bar=True,
         )
 
-    # --- score substring match (simple, notebook-aligned) ---
-    def _is_correct(pred: str, answers: List[str]) -> int:
-        p = (pred or "").lower()
-        for a in answers:
-            if a and a.lower() in p:
-                return 1
-        return 0
+    answers = []
+    for s in samples:
+        ans_list = s.get("answer") or s.get("answers") or []
+        if isinstance(ans_list, str):
+            ans_list = [ans_list]
+        answers.append(ans_list)
+
+    baseline_score_per_sample = None
+    xrag_score_per_sample = None
+
+    if baseline_outs:
+        _, baseline_score_per_sample = get_substring_match_score(baseline_outs, answers)
+
+    if xrag_outs:
+        _, xrag_score_per_sample = get_substring_match_score(xrag_outs, answers)
 
     rows: List[Dict[str, Any]] = []
     for i, s in enumerate(samples):
@@ -420,13 +467,10 @@ def run_overflow_pipeline(
             ans_list = [ans_list]
 
         baseline_pred = baseline_outs[i] if baseline_outs else ""
-        baseline_correct = _is_correct(baseline_pred, ans_list) if baseline_outs else 0
+        baseline_correct = float(baseline_score_per_sample[i]) if baseline_score_per_sample is not None else 0.0
 
         xrag_pred = xrag_outs[i] if xrag_outs else ""
-        xrag_correct = _is_correct(xrag_pred, ans_list) if xrag_outs else 0
-
-        if only_baseline_correct and baseline_outs and baseline_correct != 1:
-            continue
+        xrag_correct = float(xrag_score_per_sample[i]) if xrag_score_per_sample is not None else 0.0
 
         row: Dict[str, Any] = {
             "sample_idx": i,
@@ -434,16 +478,15 @@ def run_overflow_pipeline(
             "question": s.get("question"),
             "answer": ans_list,
             "baseline_pred": baseline_pred,
-            "baseline_substring_match": int(baseline_correct),
+            "baseline_substring_match": baseline_correct,
         }
 
         if mode in {"xrag", "both"}:
             row.update(
                 {
                     "xrag_pred": xrag_pred,
-                    "xrag_substring_match": int(xrag_correct),
-                    # notebook-style overflow: baseline correct but xrag wrong
-                    "overflow_label": int((baseline_correct == 1) and (xrag_correct == 0)),
+                    "xrag_substring_match": xrag_correct,
+                    "overflow_label": int((baseline_correct == 1.0) and (xrag_correct == 0.0)),
                     "xrag_metrics": xrag_metrics[i] if i < len(xrag_metrics) else {},
                 }
             )
@@ -457,6 +500,9 @@ def run_overflow_pipeline(
             }
 
         rows.append(row)
+
+    if only_baseline_correct and baseline_outs:
+        rows = [r for r in rows if r["baseline_substring_match"] == 1.0]
 
     _write_jsonl(out_jsonl, rows)
 
@@ -476,7 +522,7 @@ def main() -> None:
     ap.add_argument("--embed_max_len", type=int, default=512)
     ap.add_argument("--retrieval_embed_length", type=int, default=1)
     ap.add_argument("--n_shot", type=int, default=0)
-    ap.add_argument("--chat_format_type", type=str, default="mistral")
+    ap.add_argument("--chat_format", type=str, default="mistral")
     ap.add_argument("--max_new_tokens", type=int, default=32)
     ap.add_argument("--only_baseline_correct", action="store_true")
     ap.add_argument("--device", type=str, default="auto")
@@ -494,7 +540,7 @@ def main() -> None:
         embed_max_len=args.embed_max_len,
         retrieval_embed_length=args.retrieval_embed_length,
         n_shot=args.n_shot,
-        chat_format_type=args.chat_format_type,
+        chat_format=args.chat_format,
         max_new_tokens=args.max_new_tokens,
         only_baseline_correct=args.only_baseline_correct,
         device=arg.device,
