@@ -17,10 +17,10 @@ Output:
 /app/overflow-detection/scripts/data_preprocessing/runs/hotpotqa_moe/probe \
 Example:
 python merge_probe_datasets.py \
-  --inputs /app/overflow-detection/scripts/data_preprocessing/runs/split_squad_moe/probe/train \
-           /app/overflow-detection/scripts/data_preprocessing/runs/split_trivia_moe/probe/train \
-           /app/overflow-detection/scripts/data_preprocessing/runs/split_hotpotqa_moe/probe/train \
-  --out_dir /app/overflow-detection/scripts/data_preprocessing/runs/split_combined_moe/probe/train
+  --inputs /app/overflow-detection/scripts/data_preprocessing/runs/squad_moe/probe \
+           /app/overflow-detection/scripts/data_preprocessing/runs/hotpotqa_moe/probe \
+           /app/overflow-detection/scripts/data_preprocessing/runs/trivia_moe/probe \
+  --out_dir /app/overflow-detection/scripts/data_preprocessing/runs/combined_moe/probe
 """
 
 from __future__ import annotations

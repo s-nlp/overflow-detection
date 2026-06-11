@@ -30,45 +30,45 @@ METRICS = ["AUC", "F1", "Acc"]
 MANUAL_RESULTS = {
     "TriviaQA": {
         "Mistral 7B": {
-            "No query": {"AUC": 0.685, "F1": 0.082, "Acc": 0.806},
-            "With query": {"AUC": 0.727, "F1": 0.109, "Acc": 0.805},
+            "No query": {"AUC": 0.688, "F1": 0.119, "Acc": 0.803},
+            "With query": {"AUC": 0.719, "F1": 0.106, "Acc": 0.905},
         },
         "Mixtral-8x7B": {
-            "No query": {"AUC": 0.654, "F1": 0.000, "Acc": 0.905},
-            "With query": {"AUC": 0.685, "F1": 0.000, "Acc": 0.905},
+            "No query": {"AUC": 0.646, "F1": 0.008, "Acc": 0.905},
+            "With query": {"AUC": 0.673, "F1": 0.000, "Acc": 0.905},
         },
     },
 
     "SQuADv2": {
         "Mistral 7B": {
-            "No query": {"AUC": 0.645, "F1": 0.740, "Acc": 0.622},
-            "With query": {"AUC": 0.710, "F1": 0.740, "Acc": 0.667},
+            "No query": {"AUC": 0.640, "F1": 0.732, "Acc": 0.606},
+            "With query": {"AUC": 0.696, "F1": 0.734, "Acc": 0.658},
         },
         "Mixtral-8x7B": {
-            "No query": {"AUC": 0.639, "F1": 0.241, "Acc": 0.557},
-            "With query": {"AUC": 0.689, "F1": 0.594, "Acc": 0.629},
+            "No query": {"AUC": 0.649, "F1": 0.579, "Acc": 0.604},
+            "With query": {"AUC": 0.692, "F1": 0.617, "Acc": 0.637},
         },
     },
 
     "HotpotQA": {
         "Mistral 7B": {
-            "No query": {"AUC": 0.620, "F1": 0.618, "Acc": 0.596},
-            "With query": {"AUC": 0.713, "F1": 0.672, "Acc": 0.654},
+            "No query": {"AUC": 0.637, "F1": 0.651, "Acc": 0.605},
+            "With query": {"AUC": 0.716, "F1": 0.682, "Acc": 0.659},
         },
         "Mixtral-8x7B": {
-            "No query": {"AUC": 0.625, "F1": 0.577, "Acc": 0.585},
-            "With query": {"AUC": 0.737, "F1": 0.691, "Acc": 0.675},
+            "No query": {"AUC": 0.636, "F1": 0.601, "Acc": 0.595},
+            "With query": {"AUC": 0.734, "F1": 0.683, "Acc": 0.672},
         },
     },
 
     "Combined": {
         "Mistral 7B": {
-            "No query": {"AUC": 0.733, "F1": 0.609, "Acc": 0.677},
-            "With query": {"AUC": 0.782, "F1": 0.644, "Acc": 0.717},
+            "No query": {"AUC": 0.728, "F1": 0.556, "Acc": 0.674},
+            "With query": {"AUC": 0.774, "F1": 0.639, "Acc": 0.709},
         },
         "Mixtral-8x7B": {
-            "No query": {"AUC": 0.775, "F1": 0.556, "Acc": 0.726},
-            "With query": {"AUC": 0.818, "F1": 0.607, "Acc": 0.772},
+            "No query": {"AUC": 0.774, "F1": 0.554, "Acc": 0.730},
+            "With query": {"AUC": 0.811, "F1": 0.609, "Acc": 0.765},
         },
     },
 }
